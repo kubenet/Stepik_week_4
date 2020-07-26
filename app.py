@@ -23,15 +23,16 @@ db = SQLAlchemy(app)
 
 class Teachers(db.Model):
     """ Модель преподавателей """
-    __tablename__ = 'users'
+    __tablename__ = 'teachers'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     about = db.Column(db.String, nullable=False)
     rating = db.Column(db.Float, nullable=False)
     price = db.Column(db.Integer, nullable=False)
-    goals = db.Column(db.String, nullable=False)
     lesson_time = db.Column(db.String, nullable=False)
     # Ссылка на поле в модели цели (One-to-Many)
+    goals = db.relationship("Goals", back_populates="goal", uselist=False)
+
     # Ссылка на поле в модели рассписание (One-to-Many)
 
 
@@ -39,9 +40,10 @@ class Goals(db.Model):
     """ Модель целей занятий """
     __tablename__ = 'goals'
     id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String, nullable=False)
-    goal = db.Column(db.String, nullable=False)
+    key = db.Column(db.String)
     # Ссылка на модель преподавателя (One-to-Many)
+    teachers_id = db.Column(db.Integer, db.ForeignKey("teachers.id"))
+    goal = db.relationship("Teachers", back_populates="goals")
 
 
 class TimetableTeachers(db.Model):
@@ -78,6 +80,14 @@ class Booking(db.Model):
 
 
 db.create_all()
+teacher1 = Teachers(name='Ivan', about='about', rating=4.5, price=900, lesson_time='1')
+goal1 = Goals(key='work', goal=teacher1)
+
+db.session.add(goal1)
+db.session.add(teacher1)
+
+db.session.commit()
+print(teacher1.id)
 
 
 def add_record(name, about, rating, price, goal, lesson_time):
