@@ -1,14 +1,90 @@
 import json
+import hashlib
 from flask import Flask, render_template, request
 from flask_wtf import FlaskForm
 from wtforms import RadioField, StringField
-
-app = Flask(__name__)
-app.secret_key = 'key'
+from sqlalchemy import CheckConstraint
+from flask_sqlalchemy import SQLAlchemy
 
 with open('data.json', 'r') as r:
     all_data = json.load(r)
+    md5Hash = hashlib.md5(str(all_data).encode())
+    md5Hashed = md5Hash.hexdigest()
+    print(md5Hashed)
     r.close()
+
+app = Flask(__name__)
+app.secret_key = md5Hashed
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+# engine = create_engine('sqlite:///test.db', echo=True)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+
+class Teachers(db.Model):
+    """ Модель преподавателей """
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    about = db.Column(db.String, nullable=False)
+    rating = db.Column(db.Real, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    goals = db.Column(db.String, nullable=False)
+    lesson_time = db.Column(db.String, nullable=False)
+    # Ссылка на поле в модели цели (One-to-Many)
+    # Ссылка на поле в модели рассписание (One-to-Many)
+
+
+class Goals(db.Model):
+    """ Модель целей занятий """
+    __tablename__ = 'goals'
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String, nullable=False)
+    goal = db.Column(db.String, nullable=False)
+    # Ссылка на модель преподавателя (One-to-Many)
+
+
+class TimetableTeachers(db.Model):
+    """ Модель расписания преподавателей на неделю """
+    __tablename__ = 'timetables'
+    id = db.Column(db.Integer, primary_key=True)
+    week_day = db.Column(db.String, nullable=False)
+    day_times = db.Column(db.String, nullable=False)
+    # ссылка на поле id в модели преподавателя (One-to-Many)
+
+
+class SearchTeacher(db.Model):
+    """ Модель поиска преподавателя по критериям: цели и планируемое кол-во часов занятий в неделю """
+    __tablename__ = 'timetables'
+    id = db.Column(db.Integer, primary_key=True)
+    goal = db.Column(db.String(20), nullable=False)
+    how_time = db.Column(db.String(20), nullable=False)
+    client_name = db.Column(db.Striing(25), nullable=False)
+    client_phone = db.Column(db.Striing(10), nullable=False)
+    # ссылка на поле id в модели целей (goals) (One-to-Many)
+
+
+class Booking(db.Model):
+    """ Модель поиска преподавателя по критериям: цели и планируемое кол-во часов занятий в неделю """
+    __tablename__ = 'timetables'
+    id = db.Column(db.Integer, primary_key=True)
+    id_teacher = db.Column(db.String(20), nullable=False)
+    day = db.Column(db.String(5), nullable=False)
+    time = db.Column(db.Striing(10), nullable=False)
+    client_name = db.Column(db.Striing(25), nullable=False)
+    client_phone = db.Column(db.Striing(10), nullable=False)
+    # ссылка на поле id в модели Teachers (One-to-Many)
+    # ссылка на поле free и day в модели TimetableTeachers (One-to-One)
+
+
+db.create_all()
+
+
+def add_record(name, about, rating, price, goal, lesson_time):
+    teacher = Teachers(name=name, about=about, rating=rating, price=price, goal=goal, lesson_time=lesson_time)
+    db.session.add(teacher)
+    db.session.commit()
+    return teacher.id # id нового преподавателя в БД
 
 
 # Запись нового запроса в файл all_requests.json
@@ -47,8 +123,6 @@ def update_timetale_teacher(id_teacher, day, times, client_name, client_phone):
             write_booking.close()
 
 
-
-
 class RequestForm(FlaskForm):  # объявление класса формы для WTForms
     name = StringField('name')
     phone = StringField('phone')
@@ -79,7 +153,7 @@ def profiles(id_techers):
     return render_template("profiles.html", id_techers=id_techers, all_data=all_data)
 
 
-@app.route('/requests/')  #  заявка на подбор репетитора
+@app.route('/requests/')  # заявка на подбор репетитора
 def requests():
     form_request = RequestForm()  # Форма для страницы ('/request')
     return render_template("request.html", form=form_request, all_data=all_data)
@@ -123,4 +197,4 @@ def booking_done():
                            clientTime=client_time, clientTeacher=client_teacher, clientWeekday=client_weekday)
 
 
-app.run('0.0.0.0')
+app.run('0.0.0.0', debug=True)
