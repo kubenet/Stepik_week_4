@@ -5,7 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField
 
 app = Flask(__name__)
-app.secret_key = "randomstring"
+app.secret_key = "a981130cf2b7e09f4686dc273cf7187e"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 # engine = create_engine('sqlite:///test.db', echo=True)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

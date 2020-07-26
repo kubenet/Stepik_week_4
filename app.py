@@ -27,7 +27,7 @@ class Teachers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     about = db.Column(db.String, nullable=False)
-    rating = db.Column(db.Real, nullable=False)
+    rating = db.Column(db.Float, nullable=False)
     price = db.Column(db.Integer, nullable=False)
     goals = db.Column(db.String, nullable=False)
     lesson_time = db.Column(db.String, nullable=False)
@@ -55,24 +55,24 @@ class TimetableTeachers(db.Model):
 
 class SearchTeacher(db.Model):
     """ Модель поиска преподавателя по критериям: цели и планируемое кол-во часов занятий в неделю """
-    __tablename__ = 'timetables'
+    __tablename__ = 'search_teachers'
     id = db.Column(db.Integer, primary_key=True)
     goal = db.Column(db.String(20), nullable=False)
     how_time = db.Column(db.String(20), nullable=False)
-    client_name = db.Column(db.Striing(25), nullable=False)
-    client_phone = db.Column(db.Striing(10), nullable=False)
+    client_name = db.Column(db.String(25), nullable=False)
+    client_phone = db.Column(db.String(10), nullable=False)
     # ссылка на поле id в модели целей (goals) (One-to-Many)
 
 
 class Booking(db.Model):
     """ Модель поиска преподавателя по критериям: цели и планируемое кол-во часов занятий в неделю """
-    __tablename__ = 'timetables'
+    __tablename__ = 'booking'
     id = db.Column(db.Integer, primary_key=True)
     id_teacher = db.Column(db.String(20), nullable=False)
     day = db.Column(db.String(5), nullable=False)
-    time = db.Column(db.Striing(10), nullable=False)
-    client_name = db.Column(db.Striing(25), nullable=False)
-    client_phone = db.Column(db.Striing(10), nullable=False)
+    time = db.Column(db.String(10), nullable=False)
+    client_name = db.Column(db.String(25), nullable=False)
+    client_phone = db.Column(db.String(10), nullable=False)
     # ссылка на поле id в модели Teachers (One-to-Many)
     # ссылка на поле free и day в модели TimetableTeachers (One-to-One)
 
