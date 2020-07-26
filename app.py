@@ -10,13 +10,11 @@ with open('data.json', 'r') as r:
     all_data = json.load(r)
     md5Hash = hashlib.md5(str(all_data).encode())
     md5Hashed = md5Hash.hexdigest()
-    print(md5Hashed)
     r.close()
 
 app = Flask(__name__)
 app.secret_key = md5Hashed
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-# engine = create_engine('sqlite:///test.db', echo=True)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -32,8 +30,8 @@ class Teachers(db.Model):
     lesson_time = db.Column(db.String, nullable=False)
     # Ссылка на поле в модели цели (One-to-Many)
     goals = db.relationship("Goals", back_populates="goal")
-
     # Ссылка на поле в модели рассписание (One-to-Many)
+    week_day = db.relationship("TimetableTeachers", back_populates="week")
 
 
 class Goals(db.Model):
@@ -43,28 +41,33 @@ class Goals(db.Model):
     key = db.Column(db.String, nullable=False)
     # Ссылка на модель преподавателя (One-to-Many)
     teachers_id = db.Column(db.Integer, db.ForeignKey("teachers.id"))
-    goal = db.relationship("Teachers", back_populates="goals")
+    goal = db.relationship("Teachers", back_populates="goals", uselist=False)
+
+    # Ссылка на поле в модели подбора преподавателя (One-to-Many)
+    search_teacher = db.relationship("SearchTeacher", back_populates="goal", uselist=False)
 
 
 class TimetableTeachers(db.Model):
     """ Модель расписания преподавателей на неделю """
     __tablename__ = 'timetables'
     id = db.Column(db.Integer, primary_key=True)
-    week_day = db.Column(db.String, nullable=False)
     day_times = db.Column(db.String, nullable=False)
+    status = db.Column(db.Boolean, nullable=False)
     # ссылка на поле id в модели преподавателя (One-to-Many)
-
+    teachers_id = db.Column(db.Integer, db.ForeignKey("teachers.id"))
+    week = db.relationship("Teachers", back_populates="week_day", uselist=False)
 
 
 class SearchTeacher(db.Model):
     """ Модель поиска преподавателя по критериям: цели и планируемое кол-во часов занятий в неделю """
     __tablename__ = 'search_teachers'
     id = db.Column(db.Integer, primary_key=True)
-    goal = db.Column(db.String(20), nullable=False)
     how_time = db.Column(db.String(20), nullable=False)
     client_name = db.Column(db.String(25), nullable=False)
     client_phone = db.Column(db.String(10), nullable=False)
-    # ссылка на поле id в модели целей (goals) (One-to-Many)
+    # Ссылка на поле в модели цели (One-to-Many)
+    goal_id = db.Column(db.Integer, db.ForeignKey("goals.id"))
+    goal = db.relationship("Goals", back_populates="search_teacher", uselist=False)
 
 
 class Booking(db.Model):
@@ -77,6 +80,7 @@ class Booking(db.Model):
     client_name = db.Column(db.String(25), nullable=False)
     client_phone = db.Column(db.String(10), nullable=False)
     # ссылка на поле id в модели Teachers (One-to-Many)
+    teachers_id = db.Column(db.Integer, db.ForeignKey("teachers.id"))
     # ссылка на поле free и day в модели TimetableTeachers (One-to-One)
 
 
@@ -86,12 +90,41 @@ teacher1 = Teachers(name='Ivan', about='about', rating=4.5, price=900, lesson_ti
 teacher2 = Teachers(name='Fedor', about='about2', rating=4, price=9, lesson_time='13')
 teacher3 = Teachers(name='Vasya', about='about3', rating=5, price=90, lesson_time='41')
 
+search_teacher = SearchTeacher(how_time='1-2 часа', client_name='Igor', client_phone='79993332211')
+
+
+week = TimetableTeachers(day_times="8:00", status=False, week=teacher1)
+week1 = TimetableTeachers(day_times="10:00", status=True, week=teacher1)
+week2 = TimetableTeachers(day_times="12:00", status=True, week=teacher1)
+week3 = TimetableTeachers(day_times="14:00", status=True, week=teacher1)
+week4 = TimetableTeachers(day_times="16:00", status=True, week=teacher3)
+week5 = TimetableTeachers(day_times="18:00", status=True, week=teacher3)
+week6 = TimetableTeachers(day_times="20:00", status=True, week=teacher3)
+week7 = TimetableTeachers(day_times="22:00", status=True, week=teacher3)
+week8 = TimetableTeachers(day_times="21:00", status=True, week=teacher3)
+
 goal1 = Goals(key='fly', goal=teacher1)
 goal2 = Goals(key='learn', goal=teacher1)
 goal3 = Goals(key='travel', goal=teacher1)
+goal3 = Goals(key='travel', goal=teacher3)
+goal_s = Goals(key='travel', search_teacher=search_teacher)
+
+db.session.add(goal_s)
+db.session.add(search_teacher)
 
 db.session.add(goal1)
+db.session.add(week)
+db.session.add(week1)
+db.session.add(week2)
+db.session.add(week3)
+db.session.add(week4)
+db.session.add(week5)
+db.session.add(week6)
+db.session.add(week7)
+db.session.add(week8)
 db.session.add(teacher1)
+db.session.add(teacher2)
+db.session.add(teacher3)
 
 db.session.commit()
 t1 = Teachers.query.get(1)
