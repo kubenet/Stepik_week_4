@@ -31,7 +31,7 @@ class Teachers(db.Model):
     price = db.Column(db.Integer, nullable=False)
     lesson_time = db.Column(db.String, nullable=False)
     # Ссылка на поле в модели цели (One-to-Many)
-    goals = db.relationship("Goals", back_populates="goal", uselist=False)
+    goals = db.relationship("Goals", back_populates="goal")
 
     # Ссылка на поле в модели рассписание (One-to-Many)
 
@@ -40,7 +40,7 @@ class Goals(db.Model):
     """ Модель целей занятий """
     __tablename__ = 'goals'
     id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String)
+    key = db.Column(db.String, nullable=False)
     # Ссылка на модель преподавателя (One-to-Many)
     teachers_id = db.Column(db.Integer, db.ForeignKey("teachers.id"))
     goal = db.relationship("Teachers", back_populates="goals")
@@ -53,6 +53,7 @@ class TimetableTeachers(db.Model):
     week_day = db.Column(db.String, nullable=False)
     day_times = db.Column(db.String, nullable=False)
     # ссылка на поле id в модели преподавателя (One-to-Many)
+
 
 
 class SearchTeacher(db.Model):
@@ -79,22 +80,36 @@ class Booking(db.Model):
     # ссылка на поле free и day в модели TimetableTeachers (One-to-One)
 
 
+db.drop_all()
 db.create_all()
 teacher1 = Teachers(name='Ivan', about='about', rating=4.5, price=900, lesson_time='1')
-goal1 = Goals(key='work', goal=teacher1)
+teacher2 = Teachers(name='Fedor', about='about2', rating=4, price=9, lesson_time='13')
+teacher3 = Teachers(name='Vasya', about='about3', rating=5, price=90, lesson_time='41')
+
+goal1 = Goals(key='fly', goal=teacher1)
+goal2 = Goals(key='learn', goal=teacher1)
+goal3 = Goals(key='travel', goal=teacher1)
 
 db.session.add(goal1)
 db.session.add(teacher1)
 
 db.session.commit()
-print(teacher1.id)
+t1 = Teachers.query.get(1)
+print(t1.name)
+print(t1.about)
+print(t1.rating)
+print(t1.price)
+print(t1.lesson_time)
+print(t1.goals[0].key)
+print(t1.goals[1].key)
+print(t1.goals[2].key)
 
 
 def add_record(name, about, rating, price, goal, lesson_time):
     teacher = Teachers(name=name, about=about, rating=rating, price=price, goal=goal, lesson_time=lesson_time)
     db.session.add(teacher)
     db.session.commit()
-    return teacher.id # id нового преподавателя в БД
+    return teacher.id  # id нового преподавателя в БД
 
 
 # Запись нового запроса в файл all_requests.json
