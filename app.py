@@ -3,7 +3,7 @@ import hashlib
 from flask import Flask, render_template, request
 from flask_wtf import FlaskForm
 from wtforms import RadioField, StringField
-from sqlalchemy import CheckConstraint
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
 with open('data.json', 'r') as r:
@@ -14,9 +14,10 @@ with open('data.json', 'r') as r:
 
 app = Flask(__name__)
 app.secret_key = md5Hashed
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///base.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
 class Teachers(db.Model):
@@ -26,6 +27,7 @@ class Teachers(db.Model):
     name = db.Column(db.String, nullable=False)
     about = db.Column(db.String, nullable=False)
     rating = db.Column(db.Float, nullable=False)
+    picture = db.Column(db.String, nullable=False)
     price = db.Column(db.Integer, nullable=False)
     lesson_time = db.Column(db.String, nullable=False)
     # Ссылка на поле в модели цели (One-to-Many)
@@ -84,66 +86,65 @@ class Booking(db.Model):
     day_times = db.relationship("TimetableTeachers", back_populates="booking", uselist=False)
 
 
-db.drop_all()
-db.create_all()
-teacher1 = Teachers(name='Ivan', about='about', rating=4.5, price=900, lesson_time='1')
-teacher2 = Teachers(name='Fedor', about='about2', rating=4, price=9, lesson_time='13')
-teacher3 = Teachers(name='Vasya', about='about3', rating=5, price=90, lesson_time='41')
-
-b = Booking(client_name='Semyon', client_phone='4440009993322')
-t1 = TimetableTeachers(day_times="8:00", status=False, booking=b, week=teacher3)
-
-search_teacher = SearchTeacher(how_time='1-2 часа', client_name='Igor', client_phone='79993332211')
-
-week = TimetableTeachers(day_times="8:00", status=False, week=teacher1)
-week1 = TimetableTeachers(day_times="10:00", status=True, week=teacher1)
-week2 = TimetableTeachers(day_times="12:00", status=True, week=teacher1)
-week3 = TimetableTeachers(day_times="14:00", status=True, week=teacher1)
-week4 = TimetableTeachers(day_times="16:00", status=True, week=teacher3)
-week5 = TimetableTeachers(day_times="18:00", status=True, week=teacher3)
-week6 = TimetableTeachers(day_times="20:00", status=True, week=teacher3)
-week7 = TimetableTeachers(day_times="22:00", status=True, week=teacher3)
-week8 = TimetableTeachers(day_times="21:00", status=True, week=teacher3)
-
-goal1 = Goals(key='fly', goal=teacher1)
-goal2 = Goals(key='learn', goal=teacher1)
-goal3 = Goals(key='travel', goal=teacher1)
-goal4 = Goals(key='travel', goal=teacher3)
-goal_s = Goals(key='travel', search_teacher=search_teacher)
-
-db.session.add(goal1)
-db.session.add(goal2)
-db.session.add(goal3)
-db.session.add(goal4)
-db.session.add(search_teacher)
-
-
-db.session.add(b)
-db.session.add(t1)
-
-db.session.add(week)
-db.session.add(week1)
-db.session.add(week2)
-db.session.add(week3)
-db.session.add(week4)
-db.session.add(week5)
-db.session.add(week6)
-db.session.add(week7)
-db.session.add(week8)
-db.session.add(teacher1)
-db.session.add(teacher2)
-db.session.add(teacher3)
-
-db.session.commit()
-t1 = Teachers.query.get(1)
-print(t1.name)
-print(t1.about)
-print(t1.rating)
-print(t1.price)
-print(t1.lesson_time)
-print(t1.goals[0].key)
-print(t1.goals[1].key)
-print(t1.goals[2].key)
+# db.drop_all()
+# db.create_all()
+# teacher1 = Teachers(name='Ivan', about='about', rating=4.5, price=900, lesson_time='1')
+# teacher2 = Teachers(name='Fedor', about='about2', rating=4, price=9, lesson_time='13')
+# teacher3 = Teachers(name='Vasya', about='about3', rating=5, price=90, lesson_time='41')
+#
+# b = Booking(client_name='Semyon', client_phone='4440009993322')
+# t1 = TimetableTeachers(day_times="8:00", status=False, booking=b, week=teacher3)
+#
+# search_teacher = SearchTeacher(how_time='1-2 часа', client_name='Igor', client_phone='79993332211')
+#
+# week = TimetableTeachers(day_times="8:00", status=False, week=teacher1)
+# week1 = TimetableTeachers(day_times="10:00", status=True, week=teacher1)
+# week2 = TimetableTeachers(day_times="12:00", status=True, week=teacher1)
+# week3 = TimetableTeachers(day_times="14:00", status=True, week=teacher1)
+# week4 = TimetableTeachers(day_times="16:00", status=True, week=teacher3)
+# week5 = TimetableTeachers(day_times="18:00", status=True, week=teacher3)
+# week6 = TimetableTeachers(day_times="20:00", status=True, week=teacher3)
+# week7 = TimetableTeachers(day_times="22:00", status=True, week=teacher3)
+# week8 = TimetableTeachers(day_times="21:00", status=True, week=teacher3)
+#
+# goal1 = Goals(key='fly', goal=teacher1)
+# goal2 = Goals(key='learn', goal=teacher1)
+# goal3 = Goals(key='travel', goal=teacher1)
+# goal4 = Goals(key='travel', goal=teacher3)
+# goal_s = Goals(key='travel', search_teacher=search_teacher)
+#
+# db.session.add(goal1)
+# db.session.add(goal2)
+# db.session.add(goal3)
+# db.session.add(goal4)
+# db.session.add(search_teacher)
+#
+# db.session.add(b)
+# db.session.add(t1)
+#
+# db.session.add(week)
+# db.session.add(week1)
+# db.session.add(week2)
+# db.session.add(week3)
+# db.session.add(week4)
+# db.session.add(week5)
+# db.session.add(week6)
+# db.session.add(week7)
+# db.session.add(week8)
+# db.session.add(teacher1)
+# db.session.add(teacher2)
+# db.session.add(teacher3)
+#
+# db.session.commit()
+# t1 = Teachers.query.get(1)
+# print(t1.name)
+# print(t1.about)
+# print(t1.rating)
+# print(t1.price)
+# print(t1.lesson_time)
+# print(t1.goals[0].key)
+# print(t1.goals[1].key)
+# print(t1.goals[2].key)
 
 
 def add_record(name, about, rating, price, goal, lesson_time):
@@ -263,4 +264,37 @@ def booking_done():
                            clientTime=client_time, clientTeacher=client_teacher, clientWeekday=client_weekday)
 
 
-app.run('0.0.0.0', debug=True)
+def import_json_data():
+    with open('data.json', 'r') as r:
+        all_data = json.load(r)
+        for teacher in all_data[1]:
+            print(teacher)
+            t=Teachers(
+                name=teacher['name'],
+                about=teacher['about'],
+                rating=teacher['rating'],
+                picture=teacher['picture'],
+                price=teacher['price'])
+            db.session.add(t)
+            for goal in teacher['goals']:
+                db.session.add(Goals(key=goal, teachers_id=t))
+            for day in teacher['free']:
+                for times, status in teacher['free'][day].items():
+                    print(times)
+                    print(status)
+
+                    db.session.add(TimetableTeachers(
+                        day_times=str(times),
+                        status=status,
+                        week=t
+                        )
+                    )
+
+        r.close()
+    db.session.commit()
+
+
+import_json_data()
+
+if __name__ == "__main__":
+    app.run('0.0.0.0', debug=True)
