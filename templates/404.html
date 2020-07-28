@@ -1,1 +1,20 @@
-<html><head><meta name="robots" content="noindex"><title>Tilda</title></head><body style="background-color:#eee;"><table style="width:100%; height:100%;"><tr><td style="vertical-align: middle; text-align: center;"><a href="https://tilda.cc"><img src="//tilda.ws/img/logo404.png" border="0" alt="Tilda" /></a></td></tr></table></body></html>
+{% extends 'base.html' %}
+
+
+{% block container %}
+<main class="container mt-3">
+    <!-- HERO -->
+    <div class="row mt-5">
+        <div class="col-10 col-md-6 offset-1 offset-md-3">
+            <div class="card mb-3">
+                <div class="card-body text-center pt-5">
+                    <img src="../static/404.gif" class="mb-3" width="100" alt="">
+                    <h2 class="h3 card-title mt-4 mb-2">Запрашиваемый ресурс не найден!</h2>
+                    <p>Если вам не удается что-то найти сообщите нам:<br><b>Email: hot@support.site</b>></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+{% endblock %}

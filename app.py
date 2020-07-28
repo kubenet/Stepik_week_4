@@ -194,10 +194,10 @@ def update_timetale_teacher(id_teacher, day, times, client_name, client_phone):
 class RequestForm(FlaskForm):  # объявление класса формы для WTForms
     name = StringField('name', [InputRequired(), Length(min=2, max=12)])
     phone = StringField('phone', [InputRequired(), Length(min=9)])
-    goal = RadioField("Какая цель занятий?", [AnyOf([0, 1, 2, 3, 4])],
+    goal = RadioField("Какая цель занятий?", [InputRequired(), AnyOf([0, 1, 2, 3, 4])],
                       choices=[('0', 'Для путешествий'), ('1', 'Для школы'), ('2', 'Для работы'),
                                ('3', 'Для переезда'), ('4', 'Для программирования')])
-    time = RadioField("Сколько времени есть?", [AnyOf([0, 1, 2, 3])],
+    time = RadioField("Сколько времени есть?", [InputRequired(), AnyOf([0, 1, 2, 3])],
                       choices=[('0', '1-2 часа в неделю'),  ('1', '3-5 часов в неделю'),
                                ('2', '5-7 часов в неделю'), ('3', '7-10 часов в неделю')])
 
@@ -210,7 +210,7 @@ def index():
     for teacher in teachers:
         print(f"Имя: {teacher.name}, about:{teacher.about}, rating:{teacher.rating}")
 
-    return render_template("index.html", all_data=all_data)
+    return render_template("index.html", all_data=all_data, teachers=teachers)
 
 
 @app.route('/techers/')  # все репетиторы
@@ -237,19 +237,21 @@ def requests():
 @app.route('/request_done/', methods=['POST'])  # заявка на подбор отправлена
 def request_done():
     form = RequestForm()
-    name = form.name.data
-    phone = form.phone.data
-    goal = form.goal.data
-    times = form.time.data
+    if form.validate():
+        name = form.name.data
+        phone = form.phone.data
+        goal = form.goal.data
+        times = form.time.data
 
-    goal_choices = {'0': 'Для путешествий', '1': 'Для школы', '2': 'Для работы', '3': 'Для переезда'}
-    time_choices = {'0': '1-2 часа в неделю', '1': '3-5 часов в неделю', '2': '5-7 часов в неделю',
-                    '3': '7-10 часов в неделю'}
+        goal_choices = {'0': 'Для путешествий', '1': 'Для школы', '2': 'Для работы', '3': 'Для переезда'}
+        time_choices = {'0': '1-2 часа в неделю', '1': '3-5 часов в неделю', '2': '5-7 часов в неделю',
+                        '3': '7-10 часов в неделю'}
 
-    add_request(name, phone, goal_choices[goal], time_choices[times])
-    return render_template("request_done.html", username=name, userphone=phone,
-                           goal=goal_choices[goal], time=time_choices[times])
-
+        add_request(name, phone, goal_choices[goal], time_choices[times])
+        return render_template("request_done.html", username=name, userphone=phone,
+                               goal=goal_choices[goal], time=time_choices[times])
+    else:
+        return render_template("404.html")
 
 @app.route('/booking/<int:id_techers>/<day>/<time>/')  # здесь будет форма бронирования <id учителя>
 def booking(id_techers, day, time):
