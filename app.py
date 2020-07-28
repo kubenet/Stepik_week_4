@@ -192,13 +192,13 @@ def update_timetale_teacher(id_teacher, day, times, client_name, client_phone):
 
 
 class RequestForm(FlaskForm):  # объявление класса формы для WTForms
-    name = StringField('name', [InputRequired(), Length(min=2, max=12)])
-    phone = StringField('phone', [InputRequired(), Length(min=9)])
-    goal = RadioField("Какая цель занятий?", [InputRequired(), AnyOf([0, 1, 2, 3, 4])],
+    name = StringField('name', [InputRequired(message="Необходимо указать имя"), Length(min=2, max=12)])
+    phone = StringField('phone', [InputRequired(message="Необходимо указать номер телефона"), Length(min=9)])
+    goal = RadioField("Какая цель занятий?", [InputRequired(message="Выберите цель"), AnyOf([0, 1, 2, 3, 4])],
                       choices=[('0', 'Для путешествий'), ('1', 'Для школы'), ('2', 'Для работы'),
                                ('3', 'Для переезда'), ('4', 'Для программирования')])
-    time = RadioField("Сколько времени есть?", [InputRequired(), AnyOf([0, 1, 2, 3])],
-                      choices=[('0', '1-2 часа в неделю'),  ('1', '3-5 часов в неделю'),
+    time = RadioField("Сколько времени есть?", [InputRequired(message="Выберите кол-во часов"), AnyOf([0, 1, 2, 3])],
+                      choices=[('0', '1-2 часа в неделю'), ('1', '3-5 часов в неделю'),
                                ('2', '5-7 часов в неделю'), ('3', '7-10 часов в неделю')])
 
 
@@ -252,6 +252,7 @@ def request_done():
                                goal=goal_choices[goal], time=time_choices[times])
     else:
         return render_template("404.html")
+
 
 @app.route('/booking/<int:id_techers>/<day>/<time>/')  # здесь будет форма бронирования <id учителя>
 def booking(id_techers, day, time):
