@@ -3,6 +3,7 @@ import hashlib
 from flask import Flask, render_template, request
 from flask_wtf import FlaskForm
 from wtforms import RadioField, StringField
+from wtforms.validators import InputRequired, Length, AnyOf
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
@@ -191,13 +192,14 @@ def update_timetale_teacher(id_teacher, day, times, client_name, client_phone):
 
 
 class RequestForm(FlaskForm):  # объявление класса формы для WTForms
-    name = StringField('name')
-    phone = StringField('phone')
-    goal = RadioField("Какая цель занятий?", choices=[('0', 'Для путешествий'), ('1', 'Для школы'), ('2', 'Для работы'),
-                                                      ('3', 'Для переезда')])
-    time = RadioField("Сколько времени есть?",
-                      choices=[('0', '1-2 часа в неделю'), ('1', '3-5 часов в неделю'), ('2', '5-7 часов в неделю'),
-                               ('3', '7-10 часов в неделю')])
+    name = StringField('name', [InputRequired(), Length(min=2, max=12)])
+    phone = StringField('phone', [InputRequired(), Length(min=9)])
+    goal = RadioField("Какая цель занятий?", [AnyOf([0, 1, 2, 3, 4])],
+                      choices=[('0', 'Для путешествий'), ('1', 'Для школы'), ('2', 'Для работы'),
+                               ('3', 'Для переезда'), ('4', 'Для программирования')])
+    time = RadioField("Сколько времени есть?", [AnyOf([0, 1, 2, 3])],
+                      choices=[('0', '1-2 часа в неделю'),  ('1', '3-5 часов в неделю'),
+                               ('2', '5-7 часов в неделю'), ('3', '7-10 часов в неделю')])
 
 
 @app.route('/')  # главная
