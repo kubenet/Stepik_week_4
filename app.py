@@ -29,7 +29,7 @@ class Teachers(db.Model):
     rating = db.Column(db.Float, nullable=False)
     picture = db.Column(db.String, nullable=False)
     price = db.Column(db.Integer, nullable=False)
-    lesson_time = db.Column(db.String, nullable=False)
+    lesson_time = db.Column(db.String)
     # Ссылка на поле в модели цели (One-to-Many)
     goals = db.relationship("Goals", back_populates="goal")
     # Ссылка на поле в модели рассписание (One-to-Many)
@@ -268,33 +268,36 @@ def import_json_data():
     with open('data.json', 'r') as r:
         all_data = json.load(r)
         for teacher in all_data[1]:
-            print(teacher)
-            t=Teachers(
+            # print(teacher)
+            t = Teachers(
                 name=teacher['name'],
                 about=teacher['about'],
                 rating=teacher['rating'],
                 picture=teacher['picture'],
-                price=teacher['price'])
+                price=teacher['price'],
+                lesson_time='8:00')
             db.session.add(t)
             for goal in teacher['goals']:
-                db.session.add(Goals(key=goal, teachers_id=t))
+                print(goal)
+                db.session.add(Goals(key=goal, goal=t))
             for day in teacher['free']:
                 for times, status in teacher['free'][day].items():
                     print(times)
                     print(status)
 
-                    db.session.add(TimetableTeachers(
-                        day_times=str(times),
-                        status=status,
-                        week=t
+                    db.session.add(
+                        TimetableTeachers(
+                            day_times=str(times),
+                            status=status,
+                            week=t
                         )
                     )
 
-        r.close()
-    db.session.commit()
+    r.close()
 
 
-import_json_data()
+# import_json_data()
+# db.session.commit()
 
 if __name__ == "__main__":
     app.run('0.0.0.0', debug=True)
