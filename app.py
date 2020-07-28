@@ -202,6 +202,12 @@ class RequestForm(FlaskForm):  # объявление класса формы д
 
 @app.route('/')  # главная
 def index():
+    teachers_query = db.session.query(Teachers).order_by(Teachers.rating).limit(6)
+    teachers = teachers_query.all()
+    print("В базе", len(teachers), "преподавателей")
+    for teacher in teachers:
+        print(f"Имя: {teacher.name}, about:{teacher.about}, rating:{teacher.rating}")
+
     return render_template("index.html", all_data=all_data)
 
 
@@ -268,7 +274,6 @@ def import_json_data():
     with open('data.json', 'r') as r:
         all_data = json.load(r)
         for teacher in all_data[1]:
-            # print(teacher)
             t = Teachers(
                 name=teacher['name'],
                 about=teacher['about'],
@@ -278,13 +283,9 @@ def import_json_data():
                 lesson_time='8:00')
             db.session.add(t)
             for goal in teacher['goals']:
-                print(goal)
                 db.session.add(Goals(key=goal, goal=t))
             for day in teacher['free']:
                 for times, status in teacher['free'][day].items():
-                    print(times)
-                    print(status)
-
                     db.session.add(
                         TimetableTeachers(
                             day_times=str(times),
@@ -292,12 +293,11 @@ def import_json_data():
                             week=t
                         )
                     )
-
+    db.session.commit()
     r.close()
 
 
-# import_json_data()
-# db.session.commit()
+import_json_data()
 
 if __name__ == "__main__":
     app.run('0.0.0.0', debug=True)
