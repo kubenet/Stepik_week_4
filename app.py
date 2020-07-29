@@ -167,7 +167,7 @@ def add_request(name, phone, goal, times):
 
 
 # Запись нового запроса в файл all_requests.json
-def update_timetale_teacher(id_teacher, day, times, client_name, client_phone):
+def update_timetable_teacher(id_teacher, day, times, client_name, client_phone):
     with open('data.json', 'r') as read_json:
         records = json.load(read_json)
         records[1][int(id_teacher)]['free'][day][times] = False
@@ -202,20 +202,38 @@ class RequestForm(FlaskForm):  # объявление класса формы д
                                ('2', '5-7 часов в неделю'), ('3', '7-10 часов в неделю')])
 
 
+def query_goals():
+    # запрос для получения униальных целей
+    list_goals=[]
+    goals = db.session.query(Goals.key).distinct()
+    for key in goals.all():
+        print(*key)
+        list_goals.append(*key)
+
+    return list_goals
+
+
+query_goals()
+
+
 @app.route('/')  # главная
 def index():
+    # query_goals()
     teachers_query = db.session.query(Teachers).order_by(Teachers.rating).limit(6)
-    teachers = teachers_query.all()
-    print("В базе", len(teachers), "преподавателей")
-    for teacher in teachers:
+
+    # print("В базе", len(teachers), "преподавателей")
+    # for teacher in teachers:
+    #     print(f"Имя: {teacher.name}, about:{teacher.about}, rating:{teacher.rating}")
+
+    return render_template("index.html", all_data=all_data, goals=query_goals(), teachers=teachers_query.all())
+
+
+@app.route('/teachers/')  # все репетиторы
+def teachers():
+    teachers_query = db.session.query(Teachers).order_by(Teachers.rating)
+    for teacher in teachers_query.all():
         print(f"Имя: {teacher.name}, about:{teacher.about}, rating:{teacher.rating}")
-
-    return render_template("index.html", all_data=all_data, teachers=teachers)
-
-
-@app.route('/techers/')  # все репетиторы
-def techers():
-    return render_template("techers.html", all_data=all_data)
+    return render_template("teachers.html", all_data=all_data, teachers=teachers_query.all())
 
 
 @app.route('/goals/<goal>/')  # цель 'goal'
@@ -223,57 +241,102 @@ def goals(goal):
     return render_template("goals.html", goal=goal, all_data=all_data)
 
 
-@app.route('/profiles/<int:id_techers>/')  # профиль репетитора <id учителя>
-def profiles(id_techers):
-    return render_template("profiles.html", id_techers=id_techers, all_data=all_data)
+@app.route('/profiles/<int:id_teacher>/')  # профиль репетитора <id учителя>
+def profiles(id_teacher):
+    teacher = db.session.query(Teachers).get(id_teacher)
+    print(f"Имя: {teacher.name}, about:{teacher.about}, rating:{teacher.rating}")
+
+    return render_template("profiles.html", id_techer=teacher.id, all_data=all_data, teacher=teacher)
 
 
-@app.route('/requests/')  # заявка на подбор репетитора
+@app.route('/requests/', methods=['GET, POST'])  # заявка на подбор репетитора
 def requests():
-    form_request = RequestForm()  # Форма для страницы ('/request')
-    return render_template("request.html", form=form_request, all_data=all_data)
+    # Обработка запроса GET
+    if request.method == "GET":
+        form_request = RequestForm()  # Форма для страницы ('/request')
+        return render_template("request.html", form=form_request, all_data=all_data)
 
+    # Прием данных из формы
+    elif request.method == "POST":
+        form = RequestForm()
+        if form.validate():
+            name = form.name.data
+            phone = form.phone.data
+            goal = form.goal.data
+            times = form.time.data
 
-@app.route('/request_done/', methods=['POST'])  # заявка на подбор отправлена
-def request_done():
-    form = RequestForm()
-    if form.validate():
-        name = form.name.data
-        phone = form.phone.data
-        goal = form.goal.data
-        times = form.time.data
+            goal_choices = {'0': 'Для путешествий', '1': 'Для школы', '2': 'Для работы', '3': 'Для переезда'}
+            time_choices = {'0': '1-2 часа в неделю', '1': '3-5 часов в неделю', '2': '5-7 часов в неделю',
+                            '3': '7-10 часов в неделю'}
 
-        goal_choices = {'0': 'Для путешествий', '1': 'Для школы', '2': 'Для работы', '3': 'Для переезда'}
-        time_choices = {'0': '1-2 часа в неделю', '1': '3-5 часов в неделю', '2': '5-7 часов в неделю',
-                        '3': '7-10 часов в неделю'}
+            add_request(name, phone, goal_choices[goal], time_choices[times])
+            return render_template("request_done.html", username=name, userphone=phone,
+                                   goal=goal_choices[goal], time=time_choices[times])
 
-        add_request(name, phone, goal_choices[goal], time_choices[times])
-        return render_template("request_done.html", username=name, userphone=phone,
-                               goal=goal_choices[goal], time=time_choices[times])
+    # если метод HTML запроса не GET и не POST, выводим страницу с ошибкой
     else:
         return render_template("404.html")
 
 
-@app.route('/booking/<int:id_techers>/<day>/<time>/')  # здесь будет форма бронирования <id учителя>
-def booking(id_techers, day, time):
-    return render_template("booking.html", id_techers=id_techers, day=day, time=time, all_data=all_data)
+# @app.route('/request_done/', methods=['POST'])  # заявка на подбор отправлена
+# def request_done():
+    # form = RequestForm()
+    # if form.validate():
+    #     name = form.name.data
+    #     phone = form.phone.data
+    #     goal = form.goal.data
+    #     times = form.time.data
+    #
+    #     goal_choices = {'0': 'Для путешествий', '1': 'Для школы', '2': 'Для работы', '3': 'Для переезда'}
+    #     time_choices = {'0': '1-2 часа в неделю', '1': '3-5 часов в неделю', '2': '5-7 часов в неделю',
+    #                     '3': '7-10 часов в неделю'}
+    #
+    #     add_request(name, phone, goal_choices[goal], time_choices[times])
+    #     return render_template("request_done.html", username=name, userphone=phone,
+    #                            goal=goal_choices[goal], time=time_choices[times])
+    # else:
+    #     return render_template("404.html")
+    # render_template('404.html')
+
+@app.route('/booking/<int:id_teacher>/<day>/<time>/', methods=['GET', 'POST'])  # здесь будет форма бронирования <id учителя>
+def booking(id_teacher, day, time):
+    # Обработка запроса GET
+    if request.method == "GET":
+        return render_template("booking.html", id_techers=id_teacher, day=day, time=time, all_data=all_data)
+
+    # обработка метода POST (могут быть и другие методы их мы не обрабатываем)
+    elif request.method == "POST":
+        # получаем даныне из формы
+        client_weekday = request.form["clientWeekday"]
+        client_time = request.form["clientTime"]
+        client_teacher = request.form["clientTeacher"]
+        client_name = request.form["clientName"]
+        client_phone = request.form["clientPhone"]
+
+        # Обновляем расписание свободного времени репетитора
+        update_timetable_teacher(client_teacher, client_weekday, client_time, client_name, client_phone)
+
+        return render_template("booking_done.html", clientName=client_name, clientPhone=client_phone,
+                               clientTime=client_time, clientTeacher=client_teacher, clientWeekday=client_weekday)
+    else:
+        render_template('404.html')
 
 
-@app.route('/booking_done/', methods=['POST'])  # заявка отправлена
-def booking_done():
+# @app.route('/booking_done/', methods=['POST'])  # заявка отправлена
+# def booking_done():
     # получаем даныне из формы
-    client_weekday = request.form["clientWeekday"]
-    client_time = request.form["clientTime"]
-    client_teacher = request.form["clientTeacher"]
-    client_name = request.form["clientName"]
-    client_phone = request.form["clientPhone"]
-
-    # Обновляем расписание свободного времени репетитора
-    update_timetale_teacher(client_teacher, client_weekday, client_time, client_name, client_phone)
-
-    return render_template("booking_done.html", clientName=client_name, clientPhone=client_phone,
-                           clientTime=client_time, clientTeacher=client_teacher, clientWeekday=client_weekday)
-
+    # client_weekday = request.form["clientWeekday"]
+    # client_time = request.form["clientTime"]
+    # client_teacher = request.form["clientTeacher"]
+    # client_name = request.form["clientName"]
+    # client_phone = request.form["clientPhone"]
+    #
+    # # Обновляем расписание свободного времени репетитора
+    # update_timetable_teacher(client_teacher, client_weekday, client_time, client_name, client_phone)
+    #
+    # return render_template("booking_done.html", clientName=client_name, clientPhone=client_phone,
+    #                        clientTime=client_time, clientTeacher=client_teacher, clientWeekday=client_weekday)
+    # render_template('404.html')
 
 if __name__ == "__main__":
     app.run('0.0.0.0', debug=True)

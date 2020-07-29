@@ -7,14 +7,14 @@
     <div class="card my-4 mx-auto">
       <div class="card-body m-2 m-md-4">
         <article class="row">
-          <div class="col-5"><img src="{{ all_data[1][id_techers]['picture'] }}" class="img-fluid" alt=""></div>
+          <div class="col-5"><img src="{{ teacher.picture }}" class="img-fluid" alt=""></div>
           <div class="col-7">
 
             <section class="teacher=info">
 
-              <h1 class="h2">{{ all_data[1][id_techers]['name'] }}</h1>
-              <p><span class="badge badge-secondary mr-2"> {{ all_data[0][all_data[1][id_techers]['goals']] }}Для путешествий </span>Рейтинг: {{ all_data[1][id_techers]['rating'] }} Ставка: {{ all_data[1][id_techers]['price'] }} / час</p>
-              <p>{{ all_data[1][id_techers]['about'] }}</p>
+              <h1 class="h2">{{ teacher.name }}</h1>
+              <p><span class="badge badge-secondary mr-2"> {{ teacher.goals }}Для путешествий </span>Рейтинг: {{ teacher.rating }} Ставка: {{ teacher.price }} / час</p>
+              <p>{{ teacher.about }}</p>
 
             </section>
 
@@ -22,19 +22,19 @@
 
               <h4 class="mb-4 mt-5">Записаться на пробный урок</h4>
 
-              {% for day in all_data[1][id_techers]['free'] %}
+              {% for day in all_data[1][teacher.id]['free'] %}
 
-              {% if day == 'mon'%}<h6 class="mt-4">Понедельник</h6>
-              {% elif day == 'tue'%}<h6 class="mt-4">Вторник</h6>
-              {% elif day == 'wed'%}<h6 class="mt-4">Среда</h6>
-              {% elif day == 'thu'%}<h6 class="mt-4">Четверг</h6>
-              {% elif day == 'fri'%}<h6 class="mt-4">Пятница</h6>
-              {% elif day == 'sat'%}<h6 class="mt-4">Суббота</h6>
-              {% elif day == 'sun'%}<h6 class="mt-4">Воскресенье</h6>{% endif %}
+                {% if day == 'mon'%}<h6 class="mt-4">Понедельник</h6>
+                {% elif day == 'tue'%}<h6 class="mt-4">Вторник</h6>
+                {% elif day == 'wed'%}<h6 class="mt-4">Среда</h6>
+                {% elif day == 'thu'%}<h6 class="mt-4">Четверг</h6>
+                {% elif day == 'fri'%}<h6 class="mt-4">Пятница</h6>
+                {% elif day == 'sat'%}<h6 class="mt-4">Суббота</h6>
+                {% elif day == 'sun'%}<h6 class="mt-4">Воскресенье</h6>{% endif %}
 
-              {% for key in all_data[1][id_techers]['free'][day] %}
-                  {% if all_data[1][id_techers]['free'][day][key] %}
-                      <a href="{{ url_for('booking', id_techers=id_techers|int, day=day, time=key)  }}" class="btn btn-outline-success  mr-2">{{ key }} свободно</a>
+              {% for key in all_data[1][teacher.id]['free'][day] %}
+                  {% if all_data[1][teacher.id]['free'][day][key] %}
+                      <a href="{{ url_for('booking', id_teacher=teacher.id|int, day=day, time=key)  }}" class="btn btn-outline-success  mr-2">{{ key }} свободно</a>
                   {% endif %}
 
               {% endfor %}

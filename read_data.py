@@ -6,7 +6,7 @@ def import_json_data():
     with open('data.json', 'r') as r:
         all_data = json.load(r)
         for teacher in all_data[1]:
-            t = Teachers(
+            teacher = Teachers(
                 name=teacher['name'],
                 about=teacher['about'],
                 rating=teacher['rating'],
@@ -15,14 +15,14 @@ def import_json_data():
                 lesson_time='8:00')
             db.session.add(t)
             for goal in teacher['goals']:
-                db.session.add(Goals(key=goal, goal=t))
+                db.session.add(Goals(key=goal, goal=teacher))
             for day in teacher['free']:
                 for times, status in teacher['free'][day].items():
                     db.session.add(
                         TimetableTeachers(
                             day_times=str(times),
                             status=status,
-                            week=t
+                            week=teacher
                         )
                     )
     db.session.commit()
