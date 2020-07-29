@@ -15,11 +15,11 @@ with open('data.json', 'r') as r:
 
 app = Flask(__name__)
 CSRF_ENABLED = True
-SECRET_KEY = 'you-will-never-guess'
+SECRET_KEY = md5Hashed
 app.secret_key = md5Hashed
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///base.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-WTF_CSRF_SECRET_KEY = 'a random string'
+WTF_CSRF_SECRET_KEY = md5Hashed
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -196,11 +196,11 @@ def update_timetable_teacher(id_teacher, day, times, client_name, client_phone):
 
 
 class RequestForm(FlaskForm):  # объявление класса формы для WTForms
-    name = StringField('name')
-    phone = StringField('phone')
+    name = StringField('name', [InputRequired(), Length(min=2)])
+    phone = StringField('phone', [InputRequired(), Length(min=6, max=12)])
     goal = RadioField("Какая цель занятий?",
-                      choices=[('0', 'Для путешествий'), ('1', 'Для школы'), ('2', 'Для работы'),
-                               ('3', 'Для переезда'), ('4', 'Для программирования')])
+                      choices=[('0', '⛱ Для путешествий'), ('1', '🏫 Для учебы'), ('2', '🏢 Для работы'),
+                               ('3', '🚜 Для переезда'), ('4', '💻 Для программирования')])
     time = RadioField("Сколько времени есть?",
                       choices=[('0', '1-2 часа в неделю'), ('1', '3-5 часов в неделю'),
                                ('2', '5-7 часов в неделю'), ('3', '7-10 часов в неделю')])
@@ -208,13 +208,24 @@ class RequestForm(FlaskForm):  # объявление класса формы д
 
 # функция выполняет запрос для получения униальных целей (для учебы, работы и т.д.)
 def query_goals():
-    list_goals = []
-    goals = db.session.query(Goals.key).distinct()
-    for key in goals.all():
-        print(*key)
-        list_goals.append(*key)
+    dict_id_teachers_goals = {}
+    dict_goals_unique = {}
+    # тут костыль ограничение на 5 уникальных целей, (исходные цели добавляются с иконками из data.json)
+    # последующие новые записи будут без иконок и они тоже будут считаться уникальными.
+    # Решение: Нужно переделать модель goals.
+    goals_unique = db.session.query(Goals.id, Goals.key).distinct().limit(5)
 
-    return list_goals
+    # цели всех преподавателей (тоже костыль, модель нужно менять)
+    goals_all = db.session.query(Goals.id, Goals.teachers_id, Goals.key)
+
+    for id, key in goals_unique.all():
+        dict_goals_unique[id] = key
+
+    for id, key, id_teacher in goals_all.all():
+        dict_id_teachers_goals[id] = (str(id_teacher))+''+str(key)
+
+    all_goals = [dict_goals_unique, dict_id_teachers_goals]
+    return all_goals
 
 
 @app.route('/')  # главная
@@ -226,12 +237,13 @@ def index():
 @app.route('/teachers/')  # все репетиторы
 def teachers():
     teachers_query = db.session.query(Teachers).order_by(Teachers.rating)
-    return render_template("teachers.html", all_data=all_data, teachers=teachers_query.all())
+    return render_template("teachers.html", all_data=all_data, goals=query_goals(), teachers=teachers_query.all())
 
 
 @app.route('/goals/<goal>/')  # цель 'goal'
 def goals(goal):
-    return render_template("goals.html", goal=goal, all_data=all_data)
+    teachers_query = db.session.query(Teachers).order_by(Teachers.rating)
+    return render_template("goals.html", goal=goal, goals=query_goals(), all_data=all_data, teachers=teachers_query.all())
 
 
 @app.route('/profiles/<int:id_teacher>/')  # профиль репетитора <id учителя>
@@ -245,7 +257,8 @@ def request_teacher():
     form = RequestForm()
     # Прием данных из формы
     if request.method == "POST" and form.validate():
-        goal_choices = {'0': 'Для путешествий', '1': 'Для школы', '2': 'Для работы', '3': 'Для переезда'}
+        goal_choices = {'0': '⛱ Для путешествий', '1': '🏫 Для учебы', '2': '🏢 Для работы',
+                        '3': '🚜 Для переезда', '4': '💻 Для программирования'}
         time_choices = {'0': '1-2 часа в неделю', '1': '3-5 часов в неделю', '2': '5-7 часов в неделю',
                         '3': '7-10 часов в неделю'}
 
@@ -282,19 +295,21 @@ def booking(id_teacher, day, time):
         # получаем даныне из формы
         client_weekday = request.form["clientWeekday"]
         client_time = request.form["clientTime"]
-        client_teacher = request.form["clientTeacher"]
+        teacher = request.form["clientTeacher"]
         client_name = request.form["clientName"]
         client_phone = request.form["clientPhone"]
 
         # Обновляем расписание свободного времени репетитора
-        update_timetable_teacher(client_teacher, client_weekday, client_time, client_name, client_phone)
+        update_timetable_teacher(teacher, client_weekday, client_time, client_name, client_phone)
 
         return render_template("booking_done.html", clientName=client_name, clientPhone=client_phone,
-                               clientTime=client_time, clientTeacher=client_teacher, clientWeekday=client_weekday)
+                               clientTime=client_time, clientTeacher=teacher, clientWeekday=client_weekday)
     else:
         render_template('404.html')
     # Обработка запроса GET
-    return render_template("booking.html", id_techers=id_teacher, day=day, time=time, all_data=all_data)
+    teacher = db.session.query(Teachers).get_or_404(id_teacher)
+
+    return render_template("booking.html", id_techers=teacher.id, day=day, time=time, all_data=all_data)
 
 
 if __name__ == "__main__":
