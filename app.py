@@ -213,7 +213,7 @@ def query_goals():
     # тут костыль ограничение на 5 уникальных целей, (исходные цели добавляются с иконками из data.json)
     # последующие новые записи будут без иконок и они тоже будут считаться уникальными.
     # Решение: Нужно переделать модель goals.
-    goals_unique = db.session.query(Goals.id, Goals.key).distinct().limit(5)
+    goals_unique = db.session.query(Goals.id, Goals.key).distinct(Goals.key).limit(6)
 
     # цели всех преподавателей (тоже костыль, модель нужно менять)
     goals_all = db.session.query(Goals.id, Goals.teachers_id, Goals.key)
@@ -222,16 +222,23 @@ def query_goals():
         dict_goals_unique[id] = key
 
     for id, key, id_teacher in goals_all.all():
-        dict_id_teachers_goals[id] = (str(id_teacher))+''+str(key)
+        dict_id_teachers_goals[id] = (str(id_teacher)) + '' + str(key)
 
     all_goals = [dict_goals_unique, dict_id_teachers_goals]
     return all_goals
 
 
+list_goal = []
+goal = db.session.query(Goals.key).distinct().limit(5)
+for g in goal:
+    list_goal.append(*g)
+
+
 @app.route('/')  # главная
 def index():
     teachers_query = db.session.query(Teachers).order_by(Teachers.rating).limit(6)
-    return render_template("index.html", all_data=all_data, goals=query_goals(), teachers=teachers_query.all())
+    global list_goal
+    return render_template("index.html", all_data=all_data, goals=list_goal, teachers=teachers_query.all())
 
 
 @app.route('/teachers/')  # все репетиторы
@@ -243,13 +250,19 @@ def teachers():
 @app.route('/goals/<goal>/')  # цель 'goal'
 def goals(goal):
     teachers_query = db.session.query(Teachers).order_by(Teachers.rating)
-    return render_template("goals.html", goal=goal, goals=query_goals(), all_data=all_data, teachers=teachers_query.all())
+    return render_template("goals.html", goal=goal, goals=query_goals(), all_data=all_data,
+                           teachers=teachers_query.all())
 
 
 @app.route('/profiles/<int:id_teacher>/')  # профиль репетитора <id учителя>
 def profiles(id_teacher):
-    teacher = db.session.query(Teachers).get_or_404(id_teacher)
-    return render_template("profiles.html", id_techer=teacher.id, all_data=all_data, teacher=teacher)
+    teacher = db.session.query(Teachers).get_or_404(id_teacher)  # если id преподавателя не найден возвращаем ошибку 404
+    timetable_teacher = db.session.query(TimetableTeachers).order_by(TimetableTeachers.id).limit(56)
+
+    list_days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
+
+    return render_template("profiles.html", id_techer=id_teacher, all_data=all_data,
+                           timetable_teacher=timetable_teacher, days=list_days, teacher=teacher)
 
 
 @app.route('/request_teacher/', methods=['GET', 'POST'])  # заявка на подбор репетитора

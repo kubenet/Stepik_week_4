@@ -8,11 +8,7 @@
       <div class="col-12 col-lg-10 offset-lg-1 m-auto">
 
         {# вывод репетиторов по выбраному направленю в порядке убывания рейтинга #}
-        {#% for teacher in teachers|sort(attribute='rating', reverse = True) if goals[1][teacher.id]|replace(goals[1][teacher.id]|first, "") == goal in teacher %#}
-        {% for teacher in teachers %}
-        {% set goal_teacher = goals[1][teacher.id]|replace(goals[1][teacher.id]|first, "") %}
-        {% if goal|first == goals[1][teacher.id]|first %}
-         {#{goal|first}} {{goals[1][teacher.id]|first}#}
+        {% for teacher in teachers if goal|first == goals[1][teacher.id]|first %}
         <div class="card mb-4">
           <div class="card-body">
             <div class="row">
@@ -26,7 +22,7 @@
             </div>
           </div>
         </div>
-        {% endif %}
+
         {% endfor %}
 
       </div>

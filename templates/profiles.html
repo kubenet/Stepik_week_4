@@ -3,49 +3,52 @@
 
 {% block container %}
 
-  <main class="container mt-3">
+<main class="container mt-3">
     <div class="card my-4 mx-auto">
-      <div class="card-body m-2 m-md-4">
-        <article class="row">
-          <div class="col-5"><img src="{{ teacher.picture }}" class="img-fluid" alt=""></div>
-          <div class="col-7">
+        <div class="card-body m-2 m-md-4">
+            <article class="row">
+                <div class="col-5"><img src="{{ teacher.picture }}" class="img-fluid" alt=""></div>
+                <div class="col-7">
 
-            <section class="teacher=info">
+                    <section class="teacher=info">
 
-              <h1 class="h2">{{ teacher.name }}</h1>
-              <p><span class="badge badge-secondary mr-2"> {{ teacher.goals }}Для путешествий </span>Рейтинг: {{ teacher.rating }} Ставка: {{ teacher.price }} / час</p>
-              <p>{{ teacher.about }}</p>
+                        <h1 class="h2">{{ teacher.name }}</h1>
+                        <p><span class="badge badge-secondary mr-2"> {{ teacher.goals }}Для путешествий </span>Рейтинг:
+                            {{ teacher.rating }} Ставка: {{ teacher.price }} / час</p>
+                        <p>{{ teacher.about }}</p>
 
-            </section>
+                    </section>
 
-            <section class="available">
+                    <section class="available">
 
-              <h4 class="mb-4 mt-5">Записаться на пробный урок</h4>
+                        <h4 class="mb-4 mt-5">Записаться на пробный урок</h4>
+<!--                      {#% for day in days %#}-->
 
-              {% for day in all_data[1][teacher.id]['free'] %}
+<!--                      <h6 class="mt-4">{{ day }}</h6>-->
 
-                {% if day == 'mon'%}<h6 class="mt-4">Понедельник</h6>
-                {% elif day == 'tue'%}<h6 class="mt-4">Вторник</h6>
-                {% elif day == 'wed'%}<h6 class="mt-4">Среда</h6>
-                {% elif day == 'thu'%}<h6 class="mt-4">Четверг</h6>
-                {% elif day == 'fri'%}<h6 class="mt-4">Пятница</h6>
-                {% elif day == 'sat'%}<h6 class="mt-4">Суббота</h6>
-                {% elif day == 'sun'%}<h6 class="mt-4">Воскресенье</h6>{% endif %}
+                      {% for time in timetable_teacher if id_teacher == time.teacher_id %}
+                      {% if loop.index < 9 %} <h6 class="mt-4">Понедельник</h6>
+                      {% elif loop.index > 8 and loop.index < 17 %} <h6 class="mt-4">Вторник</h6>
+                      {% elif loop.index > 16 and loop.index < 25 %} <h6 class="mt-4">Среда</h6>
+                      {% elif loop.index > 24 and loop.index < 32 %} <h6 class="mt-4">Четверг</h6>
+                      {% elif loop.index > 31 and loop.index < 40 %} <h6 class="mt-4">Пятница</h6>
+                      {% elif loop.index > 39 and loop.index < 48 %} <h6 class="mt-4">Суббота</h6>
+                      {% elif loop.index > 47 and loop.index < 57 %} <h6 class="mt-4">Воскресенье</h6>{% endif %}
 
-              {% for key in all_data[1][teacher.id]['free'][day] %}
-                  {% if all_data[1][teacher.id]['free'][day][key] %}
-                      <a href="{{ url_for('booking', id_teacher=teacher.id|int, day=day, time=key)  }}" class="btn btn-outline-success  mr-2">{{ key }} свободно</a>
-                  {% endif %}
+                              <a href="{{ url_for('booking', id_teacher=teacher.id|int, day=day, time=time.day_times)  }}"
+                              class="btn btn-outline-success  mr-2">{{ time.day_times }} свободно</a>
 
-              {% endfor %}
-              {% endfor %}
+<!--                          {#% endif %#}-->
+<!--                        {#% endfor %#}-->
+                        {% endfor %}
+<!--                        {#% endfor %#}-->
 
-            </section>
+                    </section>
 
-          </div>
-        </article>
-      </div>
+                </div>
+            </article>
+        </div>
 
     </div>
-  </main>
+</main>
 {% endblock %}
