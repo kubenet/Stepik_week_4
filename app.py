@@ -258,7 +258,6 @@ def goals(goal):
 def profiles(id_teacher):
     teacher = db.session.query(Teachers).get_or_404(id_teacher)  # если id преподавателя не найден возвращаем ошибку 404
     timetable_teacher = db.session.query(TimetableTeachers).order_by(TimetableTeachers.id).limit(56)
-
     list_days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
 
     return render_template("profiles.html", id_techer=id_teacher, timetable_teacher=timetable_teacher,

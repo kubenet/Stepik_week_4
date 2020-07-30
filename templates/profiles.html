@@ -16,7 +16,6 @@
                     </section>
                     <section class="available">
                         <h4 class="mb-4 mt-5">Записаться на пробный урок</h4>
-
                         {% for time in timetable_teacher if id_teacher == time.teacher_id %}
                           {% if loop.index == 1 %} <h6 class="mt-4">Понедельник</h6>
                           {% elif loop.index == 9 %} <h6 class="mt-4">Вторник</h6>
@@ -27,8 +26,10 @@
                           {% elif loop.index == 49 %} <h6 class="mt-4">Воскресенье</h6>{% endif %}
 
                             {% if time.status %}
-                              <a href="{{ url_for('booking', id_teacher=teacher.id|int, day=day, time=time.day_times)  }}"
+
+                              <a href="{{ url_for('booking', id_teacher=teacher.id|int, day=days[loop.index//8], time=time.day_times)  }}"
                               class="btn btn-outline-success  mr-2">{{ time.day_times }} свободно</a>
+
                             {% endif %}
                         {% endfor %}
                     </section>
