@@ -261,8 +261,8 @@ def profiles(id_teacher):
 
     list_days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
 
-    return render_template("profiles.html", id_techer=id_teacher, all_data=all_data,
-                           timetable_teacher=timetable_teacher, days=list_days, teacher=teacher)
+    return render_template("profiles.html", id_techer=id_teacher, timetable_teacher=timetable_teacher,
+                           days=list_days, teacher=teacher)
 
 
 @app.route('/request_teacher/', methods=['GET', 'POST'])  # заявка на подбор репетитора
