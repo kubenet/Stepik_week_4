@@ -4,10 +4,10 @@
 <main class="container mt-3">
     <div class="row mt-5">
         <div class="col-10 col-md-6 offset-1 offset-md-3 mb-3">
-            <form action="/booking_done/" method="POST" class="card mb-3">
+            <form action="{{ url_for('booking', id_teacher=teacher.id, day=day, time=time) }}" method="POST" class="card mb-3">
                 <div class="card-body text-center pt-5">
-                    <img src="{{ all_data[1][id_techers]['picture']}}" class="mb-3" width="95" alt="">
-                    <h2 class="h5 card-title mt-2 mb-2">{{ all_data[1][id_techers]['name'] }}</h2>
+                    <img src="{{ teacher.picture }}" class="mb-3" width="95" alt="">
+                    <h2 class="h5 card-title mt-2 mb-2">{{ teacher.name }}</h2>
                     <p class="my-1">Запись на пробный урок</p>
                     {% if day == 'mon'%}<p class="my-1">Понедельник, {{ time }}</p>
                     {% elif day == 'tue'%}<p class="my-1">Вторник, {{ time }}</p>
@@ -22,7 +22,7 @@
                     <div class="row">
                         <input class="form-control" type="hidden" name="clientWeekday" value="{{ day }}">
                         <input class="form-control" type="hidden" name="clientTime" value="{{ time }}">
-                        <input class="form-control" type="hidden" name="clientTeacher" value="{{ id_techers }}">
+                        <input class="form-control" type="hidden" name="clientTeacher" value="{{ teacher.name }}">
                     </div>
 
                     <label class="mb-1 mt-2" for="clientName">Вас зовут</label>

@@ -15,13 +15,7 @@
                 <hr/>
                 <div class="card-body mx-5">
                     <p><b>Тема:</b> Пробный урок</p>
-                    <p><b>Дата:</b> {% if clientWeekday == 'mon'%} Понедельник, {{ clientTime }}</p>
-                    {% elif clientWeekday == 'tue'%} Вторник, {{ clientTime }}  </p>
-                    {% elif clientWeekday == 'wed'%} Среда, {{ clientTime }}    </p>
-                    {% elif clientWeekday == 'thu'%} Четверг, {{ clientTime }}</p>
-                    {% elif clientWeekday == 'fri'%} Пятница, {{ clientTime }}</p>
-                    {% elif clientWeekday == 'sat'%} Суббота, {{ clientTime }}</p>
-                    {% elif clientWeekday == 'sun'%} Воскресенье, {{ clientTime }}</p>{% endif %}
+                    <p><b>Дата:</b> {{ day }}, {{ time }}</p>
                     <p><b>Имя:</b> {{ clientName }} </p>
                     <p><b>Телефон:</b> {{ clientPhone }}</p>
                 </div>
